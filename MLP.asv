@@ -23,17 +23,19 @@ classdef MLP < handle
         % Initialise the weights (Matrix) in a randomly manner after taking
         % the perceptron object and its variance as arguments.
         % --> try variance = 1.0    (with 0 for mean)
-        function obj = initWeights(obj, variance)
+        function obj = initWeight(obj, variance)
             [neurons1, inputs] = size(obj.hiddenWeights);
             [outputs, neurons1_plus1] = size(obj.hiddenWeights);
+            hid_weights = obj.hiddenWeights;
+            output_weights = obj.outputWeights; 
             
-            obj.hiddenWeights = variance.*randn([neurons1 inputs]); % +0
-            obj.outputWeights = variance.*randn([outputs neurons1_plus1]); % +0
+            hid_weights = hid_weights.randn([neurons1 inputs]); % +0
+            output_weights = output_weights.randn([outputs neurons1_plus1]); % +0
             
             disp('\nhidden weights: ');
-            disp(obj.hiddenWeights(:,:));
+            disp(obj.hiddenWeights(:,:),'\n');
             disp('output weights: ');
-            disp(obj.outputWeights(:,:));
+            disp(output_weights(:,:),'\n');
         
         end
         

@@ -94,7 +94,7 @@ if opt_graycolor
 else
     h=imagesc(array,[-1 1]);
 end
-axis image off
+axis image on
 
 drawnow;
 
