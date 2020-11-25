@@ -27,9 +27,9 @@ classdef MLP < handle
             obj.hiddenWeights = variance.*randn([neurons1 inputs]); % +0
             obj.outputWeights = variance.*randn([outputs neurons1_plus1]); % +0
             
-            disp('hidden weights: ');
+            disp('original hidden weights: ');
             disp(obj.hiddenWeights(:,:));
-            disp('output weights: ');
+            disp('original output weights: ');
             disp(obj.outputWeights(:,:));
         
         end
@@ -44,33 +44,35 @@ classdef MLP < handle
             hiddenNet = zeros(obj.hiddenDim, 1); % activation a for each N
             hidden = zeros(obj.hiddenDim, 1); % output o for each N
             
+%             disp('hidden weights: ');
+%             disp(obj.hiddenWeights(:,:));            
             % Net activation operation before hidden layer
             for i=1:obj.hiddenDim
                 hiddenNet(i,1) = dot(obj.hiddenWeights(i, :), input);
             end
-            disp('hiddenNet: ');
-            disp(hiddenNet(:,:));
+%             disp('hiddenNet: ');
+%             disp(hiddenNet(:,:));
             
             % Hidden layer function (o1) operation
             for i=1:obj.hiddenDim
                 hidden(i,1) = sigmoid(hiddenNet(i,1));
             end
             hidden = [hidden; 1];
-            disp('hidden: ');
-            disp(hidden(:,:));            
+%             disp('hidden: ');
+%             disp(hidden(:,:));            
             
             
-            disp('output weights: ');
-            disp(obj.outputWeights(:,:));
+%             disp('output weights: ');
+%             disp(obj.outputWeights(:,:));
             % Net activation operation after hidden layer
             outputNet = dot(obj.outputWeights, hidden);
-            disp('outputNet: ');
-            disp(outputNet(:,:));
+%             disp('outputNet: ');
+%             disp(outputNet(:,:));
             
             % Output layer function (o2) operation
             output = sigmoid(outputNet);
-            disp('Final output: ');
-            disp(output(:,:));
+%             disp('Final output: ');
+%             disp(output(:,:));
         end
         
         % This function calls the forward propagation and extracts only the
@@ -82,7 +84,28 @@ classdef MLP < handle
         % Backward-propagation of errors: learning algorithm in this method
         function obj = adapt_to_target(obj, input, target, rate)
             [hN, h, oN, o] = obj.compute_net_activation(input);
-            outputXOr(o)
+
+            dEo = o - target; % =scalar
+            dOa = dot(o, (1-o)); % =scalar
+            d2 = dot(dEo, dOa); % scalar
+            delta_w2 = d2.*h; % scalar*vector
+            disp('transpose delta_w2: ');
+            disp(transpose(delta_w2));             
+          
+            d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 vector 
+            dHa = dot(h(1:2),1-h(1:2)); % scalar             
+            d1 = dHa.*d_inter; % 2x1 vector            
+            input = [input; 1]; 
+            delta_w1 = d1.*transpose(input);
+      
+            
+            obj.outputWeights = obj.outputWeights - transpose(rate.*delta_w2);
+            disp('Update outputWeights: ');
+            disp(obj.outputWeights(:,:));                       
+            obj.hiddenWeights = obj.hiddenWeights - (rate.*delta_w1);
+            disp('Update hiddenWeights: ');
+            disp(obj.hiddenWeights(:,:));               
+           
         end
     end
 end
