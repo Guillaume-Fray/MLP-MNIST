@@ -90,17 +90,16 @@ classdef MLP < handle
             d2 = dot(dEo, dOa); % scalar
             delta_w2 = transpose(d2.*h); % scalar*vector        
           
-            d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 vector 
+            d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 (vector) 
             dHa = dot(h(1:2),1-h(1:2)); % scalar             
-            d1 = dHa.*d_inter; % 2x1 vector            
-            input = [input; 1]; 
-            delta_w1 = d1.*transpose(input);
-      
+            d1 = dHa.*d_inter; % 2x1 (vector)            
+            input = [input; 1]; % 3x1 (vector)  
+            delta_w1 = d1.*transpose(input); % 2x3 matrix    
             
-            obj.outputWeights = obj.outputWeights - (rate.*delta_w2);
+            obj.outputWeights = obj.outputWeights - (rate*delta_w2);
             disp('Update outputWeights: ');
             disp(obj.outputWeights(:,:));                       
-            obj.hiddenWeights = obj.hiddenWeights - (rate.*delta_w1);
+            obj.hiddenWeights = obj.hiddenWeights - (rate*delta_w1);
             disp('Update hiddenWeights: ');
             disp(obj.hiddenWeights(:,:));               
            
