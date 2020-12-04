@@ -88,13 +88,17 @@ classdef MLP < handle
             dEo = o - target; % =scalar
             dOa = dot(o, (1-o)); % =scalar
             d2 = dot(dEo, dOa); % scalar
-            delta_w2 = transpose(d2.*h); % scalar*vector        
+            delta_w2 = transpose(d2.*h); % 1x3 matrix
+            disp('delta_w2: ');
+            disp(delta_w2(:,:));            
           
             d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 (vector) 
-            dHa = dot(h(1:2),1-h(1:2)); % scalar             
+            dHa = dot(h(1:2),1-h(1:2)); % scalar           
             d1 = dHa.*d_inter; % 2x1 (vector)            
             input = [input; 1]; % 3x1 (vector)  
-            delta_w1 = d1.*transpose(input); % 2x3 matrix    
+            delta_w1 = d1.*transpose(input); % 2x3 matrix
+            disp('delta_w1: ');
+            disp(delta_w1(:,:));               
             
             obj.outputWeights = obj.outputWeights - (rate*delta_w2);
             disp('Update outputWeights: ');

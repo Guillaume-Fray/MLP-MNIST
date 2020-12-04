@@ -8,7 +8,7 @@ labels = loadMNISTLabels('train-labels-idx1-ubyte');
 
 % Show the one pixel
 display_network(images(:,1:8));
-disp(labels(1));
+disp(labels(1:8));
 
 % Show the first 10 images
 % display_network(images(:,1:10));
