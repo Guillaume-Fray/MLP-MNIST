@@ -14,12 +14,12 @@ hiddenSize = 2;
 % number of training steps between two plot renderings 
 speedUp = 100;
 
-record=0; % set to 1 to record video 
+record=1; % set to 1 to record video 
 % WARNING: these videos are /uncompressed/ at first and VERY LARGE
 if record == 1
     mov(1:1)=struct('cdata',[],'colormap',[]);
     frame=1;
-    title=['mlp-' targetName];
+    title=['mlp-' targetName '-proof-of-concept'];
     writerObj = VideoWriter([title '.avi'], 'Uncompressed AVI');
     open(writerObj);
 end
@@ -93,7 +93,7 @@ for t = 1:10000
         yest = m.compute_output(X(:,index));
     
         % perform learning step (back prop)
-        m.adapt_to_target(X(:,index), Y(index), 0.015); %%%%% RATE HERE 0.05 %%%%%%%%%%%%%%%%%%%%%%
+        m.adapt_to_target(X(:,index), Y(index), 0.05); %%%%% RATE HERE 0.015 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     
     % update visualizations
@@ -125,5 +125,9 @@ end
 
 % store video
 if record == 1
+%     t = timer;
+%     t.StartDelay = 60;
+%     t.TimerFcn = @(myTimerObj, thisEvent)disp('60 seconds have elapsed');
+%     start(t)
     close(writerObj);
 end   

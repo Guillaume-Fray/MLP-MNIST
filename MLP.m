@@ -23,7 +23,9 @@ classdef MLP < handle
         % --> try variance = 1.0    (with 0 as mean)
         function obj = initWeights(obj, variance)
             [neurons1, inputs] = size(obj.hiddenWeights);
-            [outputs, neurons1_plus1] = size(obj.outputWeights);     
+            [outputs, neurons1_plus1] = size(obj.outputWeights);  
+%             obj.hiddenWeights = [6,0,-2; 2,-2,0];
+%             obj.outputWeights = [-4,2,2];
             obj.hiddenWeights = variance.*randn([neurons1 inputs]); % +0
             obj.outputWeights = variance.*randn([outputs neurons1_plus1]); % +0
             
@@ -85,18 +87,22 @@ classdef MLP < handle
         function obj = adapt_to_target(obj, input, target, rate)
             [hN, h, oN, o] = obj.compute_net_activation(input);
 
-            dEo = o - target; % =scalar
-            dOa = dot(o, (1-o)); % =scalar
+            dEo = o - target; % scalar
+            dOa = dot(o, (1-o)); % scalar %%%%%%%%% This might still be a mistake: to be chacked 
             d2 = dot(dEo, dOa); % scalar
             delta_w2 = transpose(d2.*h); % 1x3 matrix
+            disp('d2: ');
+            disp(d2(:,:));                 
             disp('delta_w2: ');
             disp(delta_w2(:,:));            
           
-            d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 (vector) 
-            dHa = dot(h(1:2),1-h(1:2)); % scalar           
-            d1 = dHa.*d_inter; % 2x1 (vector)            
+            d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 vector 
+            dHa = h(1:2).*(1-h(1:2)); % 2x1 vector           
+            d1 = dHa.*d_inter; % 2x1 vector           
             input = [input; 1]; % 3x1 (vector)  
             delta_w1 = d1.*transpose(input); % 2x3 matrix
+            disp('d1: ');
+            disp(d1(:,:));            
             disp('delta_w1: ');
             disp(delta_w1(:,:));               
             
