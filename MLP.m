@@ -86,7 +86,7 @@ classdef MLP < handle
         % Backward-propagation of errors: learning algorithm in this method
         function obj = adapt_to_target(obj, input, target, rate)
             [hN, h, oN, o] = obj.compute_net_activation(input);
-
+                       
             dEo = o - target; % scalar
             dOa = dot(o, (1-o)); % scalar %%%%%%%%% This might still be a mistake: to be chacked 
             d2 = dot(dEo, dOa); % scalar
@@ -96,8 +96,8 @@ classdef MLP < handle
             disp('delta_w2: ');
             disp(delta_w2(:,:));            
           
-            d_inter = d2.*transpose(obj.outputWeights(1:2)); % 2x1 vector 
-            dHa = h(1:2).*(1-h(1:2)); % 2x1 vector           
+            d_inter = d2.*transpose(obj.outputWeights(1:obj.hiddenDim)); % 2x1 vector 
+            dHa = h(1:obj.hiddenDim).*(1-h(1:obj.hiddenDim)); % 2x1 vector           
             d1 = dHa.*d_inter; % 2x1 vector           
             input = [input; 1]; % 3x1 (vector)  
             delta_w1 = d1.*transpose(input); % 2x3 matrix

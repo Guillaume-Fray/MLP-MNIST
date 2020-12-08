@@ -9,17 +9,17 @@ target = @outputXOr;
 targetName ='XOR';
 
 %choose number of hidden neurons
-hiddenSize = 2;
+hiddenSize = 4;
 
 % number of training steps between two plot renderings 
-speedUp = 100;
+speedUp = 100; %100
 
-record=1; % set to 1 to record video 
+record=0; % set to 1 to record video 
 % WARNING: these videos are /uncompressed/ at first and VERY LARGE
 if record == 1
     mov(1:1)=struct('cdata',[],'colormap',[]);
     frame=1;
-    title=['mlp-' targetName '-proof-of-concept'];
+    title=['mlp-' targetName '-1x10-neurons'];
     writerObj = VideoWriter([title '.avi'], 'Uncompressed AVI');
     open(writerObj);
 end
@@ -84,7 +84,7 @@ marker = scatter([], [], 100, 's', 'filled');
 
 hold off;
     
-for t = 1:10000
+for t = 1:1000  %10000
     for i=1:speedUp
         % choose random sample from data
         index = randi([1 Ntotal], 1, 1);
@@ -93,7 +93,7 @@ for t = 1:10000
         yest = m.compute_output(X(:,index));
     
         % perform learning step (back prop)
-        m.adapt_to_target(X(:,index), Y(index), 0.05); %%%%% RATE HERE 0.015 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        m.adapt_to_target(X(:,index), Y(index), 2.0); %%%%% RATE HERE 0.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     
     % update visualizations
@@ -125,9 +125,5 @@ end
 
 % store video
 if record == 1
-%     t = timer;
-%     t.StartDelay = 60;
-%     t.TimerFcn = @(myTimerObj, thisEvent)disp('60 seconds have elapsed');
-%     start(t)
     close(writerObj);
 end   
