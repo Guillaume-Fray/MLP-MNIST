@@ -36,6 +36,13 @@ classdef MLP < handle
         
         end
         
+        % set weights to those of the trained model
+        function obj = chooseWeights(obj, hW, oW) 
+            obj.hiddenWeights = hW;
+            obj.outputWeights = oW;                
+        end
+        
+        
         % This function calls the forward propagation and extracts all
         % outputs.
         function [hiddenNet, hidden, outputNet, output] = compute_net_activation(obj, input)
@@ -45,37 +52,22 @@ classdef MLP < handle
             % layer)
             hiddenNet = zeros(obj.hiddenDim, 1); % activation a for each N
             hidden = zeros(obj.hiddenDim, 1); % output o for each N
- 
-%             disp('inputs: ');
-%             disp([m, n]);  
-%             disp('hidden weights: ');
-%             disp(obj.hiddenWeights(:,:));            
+        
             % Net activation operation before hidden layer
             for i=1:obj.hiddenDim
-                hiddenNet(i,1) = dot(obj.hiddenWeights(i, :), input);
+                hiddenNet(i,1) = obj.hiddenWeights(i, :) * input;
             end
-%             disp('hiddenNet: ');
-%             disp(hiddenNet(:,:));
-            
+
             % Hidden layer function (o1) operation
             for i=1:obj.hiddenDim
                 hidden(i,1) = sigmoid(hiddenNet(i,1));
             end
-%             disp('hidden: ');
-%             disp(hidden(:,:));            
-            
-            
-%             disp('output weights: ');
-%             disp(obj.outputWeights(:,:));
+
             % Net activation operation after hidden layer
-            outputNet = dot(obj.outputWeights, [hidden; 1]);
-%             disp('outputNet: ');
-%             disp(outputNet(:,:));
-            
+            outputNet = obj.outputWeights * [hidden; 1];
             % Output layer function (o2) operation
             output = sigmoid(outputNet);
-%             disp('Final output: ');
-%             disp(output(:,:));
+
         end
         
         % This function calls the forward propagation and extracts only the
@@ -88,25 +80,46 @@ classdef MLP < handle
         function obj = adapt_to_target(obj, input, target, rate)
             [hN, h, oN, o] = obj.compute_net_activation(input);
             
+            disp('Target: ');
+            disp(target);            
             dEo = o - target; % 
-            dOa = o.*(ones(length(o),1)-o); % 
-            d2 = dEo.*dOa; % matrix           
-            disp('d2: ');
-            disp((d2(:,:)));          
-            delta_w2 = d2*transpose([h;1]); % matrix      
-          
-            d_inter = d2*obj.outputWeights(1:obj.hiddenDim); %        
-            dHa = h(1:obj.hiddenDim).*(ones(length(h),1)-h(1:obj.hiddenDim)); %
-            d1 = transpose(d_inter).*dHa; %  
-            disp('d1: ');
-            disp((d1(:,:)));           
-            delta_w1 = d1*transpose([input;1]); %                    
+            dOa = o.*(ones(1,length(o))-o); %        
+            d2 = dEo.*dOa; % 
+            d2 = transpose(d2);                  
+            delta_w2 = d2*transpose([h;1]); %
+%             disp('delta_w2: ');             
+%             disp((delta_w2(:,:)));  
+
+
+%             disp('d2: ');             
+%             disp((d2(:,:)));
+%             disp('h: ');             
+%             disp((h(:,:)));          
+            d_inter = transpose(obj.outputWeights) * d2; %        
+            dHa = h.*(ones(length(h),1) - h); %
+%             disp('d_inter: ');
+%             disp((d_inter(:,:)));
+%             disp('dHa: ');
+%             disp((dHa(:,:)));
             
+%             disp('d_inter - 1: ');
+%             disp(d_inter(1:length(h)));           
+            d1 = d_inter(1:length(h)).*dHa; %  
+%             disp('d1: ');
+%             disp((d1(:,:)));
+%             disp('input: ');
+%             disp(size([input;1]));            
+            delta_w1 = d1*transpose([input;1]); % 
+            disp('delta_w2: ');
+            disp(delta_w2);              
+            disp('delta_w1: ');
+            disp(size(delta_w1));  
+
+
             obj.outputWeights = obj.outputWeights - (rate*delta_w2);                    
             obj.hiddenWeights = obj.hiddenWeights - (rate*delta_w1);
             
-            disp('Target: ');
-            disp(target);
+
             disp('Final Output: ');
             disp(o);
         end

@@ -13,35 +13,46 @@ labels = loadMNISTLabels('train-labels-idx1-ubyte');
 
 
 % Create an MLP with 1 input, 3 hidden units, 1 output
-m = MLP(n, 3, 1);
+m = MLP(n, 3, 1); % --> 10
 % Initialize weights in a range +/- 1
-m = m.initWeights(1.0); 
-for x=1:3000
-    % Train to output the right figures
-    m1 = m.adapt_to_target([images(:,1)], str2doun(['uint8(',labels(1),')']), 0.8); % rate = 0.1
-    o1 = m.compute_output(images(:,1));
-%     m2 = m.adapt_to_target([images(:,2)], [images(:,2)], 0.8); % rate = 0.1
-%     o2 = m.compute_output(images(:,2));
-%     m3 = m.adapt_to_target([images(:,3)], [images(:,3)], 0.8); % rate = 0.1
-%     o3 = m.compute_output(images(:,3));
-%     m4 = m.adapt_to_target([images(:,4)], [images(:,4)], 0.8); % rate = 0.1
-%     o4 = m.compute_output(images(:,4));
-%     m5 = m.adapt_to_target([images(:,5)], [images(:,5)], 0.8); % rate = 0.1
-%     o5 = m.compute_output(images(:,5));
-%     m6 = m.adapt_to_target([images(:,6)], [images(:,6)], 0.8); % rate = 0.1
-%     o6 = m.compute_output(images(:,6));
-%     m7 = m.adapt_to_target([images(:,7)], [images(:,7)], 0.8); % rate = 0.1
-%     o7 = m.compute_output(images(:,7));
-%     m8 = m.adapt_to_target([images(:,8)], [images(:,8)], 0.8); % rate = 0.1
-%     o8 = m.compute_output(images(:,8));
+m.initWeights(1.0); 
+target = zeros(1,10);%%%%%%%%%%%%%%
+output = 0;
+output_array = zeros(1,10);
+
+for i=1:50 %length(labels)
+    t = labels(i);
+    target(t) = 1;
+    for x=1:10  % 100, 1000
+        % Train to output the right figures
+        for j = 1:10
+            if target(j) == 1
+                m.adapt_to_target(images(:,i), 1, 0.8); % rate = 0.1
+            else
+                m.adapt_to_target(images(:,i), 0, 0.8);
+            end
+            output = m.compute_output(target(j));
+            output_array(j) = output;
+        end
+
+        
+    end
+    display_network(images(:,i));
+    fprintf('label %d : \n',i);
+    disp(labels(i));
+end
     % Outputs should approach [0 1 0]
     %[m.compute_output([0]) m.compute_output([1]) m.compute_output([2])];
-end
 
+model_output_weights = m.outputWeights;
+model_hidden_weights = m.hiddenWeights;
+testing = m.compute_output(images(:, 67));
+
+
+%%%%%%%%-------------------%%%%%%%%%%%
 disp('----- Targets -----');
-display_network(images(:,1:8));
-disp('labels(1,1)');
-disp(labels(1,1));
+display_network(images(:,1:50));
+% disp('labels(1:50)');
+% disp(labels(1:50));
 disp('----- Outputs -----');
-% disp([o1,o2,o3,o4,o5,o6,o7,o8]); 
-disp(o1);
+disp(testing);

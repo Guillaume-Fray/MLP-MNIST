@@ -13,35 +13,36 @@ labels = loadMNISTLabels('train-labels-idx1-ubyte');
 
 
 % Create an MLP with 1 input, 3 hidden units, 1 output
-m = MLP(n, 3, 1);
+m = MLP(n, 3, 10);
 % Initialize weights in a range +/- 1
 m.initWeights(1.0); 
-for x=1:3000
-    % Train to output the right figures
-    m1 = m.adapt_to_target(images(:,1), labels(1), 0.8); % rate = 0.1
-    o1 = m1.compute_output(images(:,1));
-%     m2 = m.adapt_to_target([images(:,2)], [images(:,2)], 0.8); % rate = 0.1
-%     o2 = m.compute_output(images(:,2));
-%     m3 = m.adapt_to_target([images(:,3)], [images(:,3)], 0.8); % rate = 0.1
-%     o3 = m.compute_output(images(:,3));
-%     m4 = m.adapt_to_target([images(:,4)], [images(:,4)], 0.8); % rate = 0.1
-%     o4 = m.compute_output(images(:,4));
-%     m5 = m.adapt_to_target([images(:,5)], [images(:,5)], 0.8); % rate = 0.1
-%     o5 = m.compute_output(images(:,5));
-%     m6 = m.adapt_to_target([images(:,6)], [images(:,6)], 0.8); % rate = 0.1
-%     o6 = m.compute_output(images(:,6));
-%     m7 = m.adapt_to_target([images(:,7)], [images(:,7)], 0.8); % rate = 0.1
-%     o7 = m.compute_output(images(:,7));
-%     m8 = m.adapt_to_target([images(:,8)], [images(:,8)], 0.8); % rate = 0.1
-%     o8 = m.compute_output(images(:,8));
+output = zeros(1,10);%%%%%%%%%%%%%%
+
+disp('output');
+disp(output);
+
+for i=1 % 1:8, length(labels)
+    for x=1:10  % 100, 1000
+        % Train to output the right figures
+        m.adapt_to_target(images(:,i), labels(i), 0.8); % rate = 0.1
+        output(1,i) = m.compute_output(images(:,i));
+    end
+    display_network(images(:,i));
+    fprintf('label %d : \n',i);
+    disp(labels(i));
+end
     % Outputs should approach [0 1 0]
     %[m.compute_output([0]) m.compute_output([1]) m.compute_output([2])];
-end
 
+model_output_weights = m.outputWeights;
+model_hidden_weights = m.hiddenWeights;
+testing = m.compute_output(images(:, 67));
+
+
+%%%%%%%%-------------------%%%%%%%%%%%
 disp('----- Targets -----');
-display_network(images(:,1));
-disp('labels(1,1)');
-disp(labels(1,1));
+display_network(images(:,1:50));
+% disp('labels(1:50)');
+% disp(labels(1:50));
 disp('----- Outputs -----');
-% disp([o1,o2,o3,o4,o5,o6,o7,o8]); 
-disp(o1);
+disp(testing);
