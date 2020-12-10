@@ -90,48 +90,23 @@ classdef MLP < handle
             
             dEo = o - target; % 
             dOa = o.*(ones(length(o),1)-o); % 
-            d2 = dEo.*dOa; % matrix
-%             disp('dEo: ');
-%             disp(dEo(:,:));                 
-%             disp('dOa: ');
-%             disp(dOa(:,:));             
-%             disp('d2: ');
-%             disp((d2(:,:)));
-%             disp('outputWeights: ');
-%             disp(obj.outputWeights(:,:));            
-%             disp('h: ');
-%             disp(h(:,:));             
-            delta_w2 = d2*transpose([h;1]); % matrix
-            disp('delta_w2: ');
-            disp(delta_w2(:,:));         
+            d2 = dEo.*dOa; % matrix           
+            disp('d2: ');
+            disp((d2(:,:)));          
+            delta_w2 = d2*transpose([h;1]); % matrix      
           
-
-            d_inter = d2*obj.outputWeights(1:obj.hiddenDim); %
-%             disp('Hidden Weights: ');
-%             disp(size(obj.hiddenWeights(:,:))); 
-%             disp('d_inter: ');
-%             disp(size(d_inter(:,:)));       
-%             disp('h length: ');
-%             disp(length(h));            
+            d_inter = d2*obj.outputWeights(1:obj.hiddenDim); %        
             dHa = h(1:obj.hiddenDim).*(ones(length(h),1)-h(1:obj.hiddenDim)); %
-%             disp('dHa: ');
-%             disp(size(dHa(:,:)));   
             d1 = transpose(d_inter).*dHa; %  
             disp('d1: ');
-            disp((d1(:,:)));
-            disp('input: ');
-            disp((input(:,:)));  
+            disp((d1(:,:)));           
+            delta_w1 = d1*transpose([input;1]); %                    
             
-            delta_w1 = d1*transpose([input;1]); %       
-            disp('delta_w1: ');
-            disp((delta_w1(:,:)));               
-            
-            obj.outputWeights = obj.outputWeights - (rate*delta_w2);
-%             disp('Update outputWeights: ');
-%             disp(obj.outputWeights(:,:));                       
+            obj.outputWeights = obj.outputWeights - (rate*delta_w2);                    
             obj.hiddenWeights = obj.hiddenWeights - (rate*delta_w1);
-%             disp('Update hiddenWeights: ');
-%             disp(obj.hiddenWeights(:,:));
+            
+            disp('Target: ');
+            disp(target);
             disp('Final Output: ');
             disp(o);
         end

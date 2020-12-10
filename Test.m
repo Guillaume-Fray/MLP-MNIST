@@ -15,11 +15,11 @@ labels = loadMNISTLabels('train-labels-idx1-ubyte');
 % Create an MLP with 1 input, 3 hidden units, 1 output
 m = MLP(n, 3, 1);
 % Initialize weights in a range +/- 1
-m = m.initWeights(1.0); 
-for x=1:10000
+m.initWeights(1.0); 
+for x=1:3000
     % Train to output the right figures
-    m1 = m.adapt_to_target([images(:,1)], [labels(1)], 0.8); % rate = 0.1
-    o1 = m.compute_output(images(:,1));
+    m1 = m.adapt_to_target(images(:,1), labels(1), 0.8); % rate = 0.1
+    o1 = m1.compute_output(images(:,1));
 %     m2 = m.adapt_to_target([images(:,2)], [images(:,2)], 0.8); % rate = 0.1
 %     o2 = m.compute_output(images(:,2));
 %     m3 = m.adapt_to_target([images(:,3)], [images(:,3)], 0.8); % rate = 0.1
@@ -39,7 +39,7 @@ for x=1:10000
 end
 
 disp('----- Targets -----');
-display_network(images(:,1:8));
+display_network(images(:,1));
 disp('labels(1,1)');
 disp(labels(1,1));
 disp('----- Outputs -----');
