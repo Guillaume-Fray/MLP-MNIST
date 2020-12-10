@@ -93,7 +93,7 @@ for t = 1:1000  %10000
         yest = m.compute_output(X(:,index));
     
         % perform learning step (back prop)
-        m.adapt_to_target(X(:,index), Y(index), 2.0); %%%%% RATE HERE 0.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        m.adapt_to_target(X(:,index), Y(index), 1.5); %%%%% RATE HERE 0.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     
     % update visualizations

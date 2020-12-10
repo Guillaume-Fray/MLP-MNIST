@@ -29,10 +29,10 @@ classdef MLP < handle
             obj.hiddenWeights = variance.*randn([neurons1 inputs]); % +0
             obj.outputWeights = variance.*randn([outputs neurons1_plus1]); % +0
             
-            disp('original hidden weights: ');
-            disp(obj.hiddenWeights(:,:));
-            disp('original output weights: ');
-            disp(obj.outputWeights(:,:));
+%             disp('original hidden weights: ');
+%             disp(obj.hiddenWeights(:,:));
+%             disp('original output weights: ');
+%             disp(obj.outputWeights(:,:));
         
         end
         
@@ -45,7 +45,9 @@ classdef MLP < handle
             % layer)
             hiddenNet = zeros(obj.hiddenDim, 1); % activation a for each N
             hidden = zeros(obj.hiddenDim, 1); % output o for each N
-            
+ 
+%             disp('inputs: ');
+%             disp([m, n]);  
 %             disp('hidden weights: ');
 %             disp(obj.hiddenWeights(:,:));            
             % Net activation operation before hidden layer
@@ -59,7 +61,6 @@ classdef MLP < handle
             for i=1:obj.hiddenDim
                 hidden(i,1) = sigmoid(hiddenNet(i,1));
             end
-            hidden = [hidden; 1];
 %             disp('hidden: ');
 %             disp(hidden(:,:));            
             
@@ -67,7 +68,7 @@ classdef MLP < handle
 %             disp('output weights: ');
 %             disp(obj.outputWeights(:,:));
             % Net activation operation after hidden layer
-            outputNet = dot(obj.outputWeights, hidden);
+            outputNet = dot(obj.outputWeights, [hidden; 1]);
 %             disp('outputNet: ');
 %             disp(outputNet(:,:));
             
@@ -83,36 +84,56 @@ classdef MLP < handle
             [hN, h, oN,output] = obj.compute_net_activation(input);
         end
         
-        % Backward-propagation of errors: learning algorithm in this method
+        % Back propagation of errors: learning algorithm in this method
         function obj = adapt_to_target(obj, input, target, rate)
             [hN, h, oN, o] = obj.compute_net_activation(input);
-                       
-            dEo = o - target; % scalar
-            dOa = dot(o, (1-o)); % scalar %%%%%%%%% This might still be a mistake: to be chacked 
-            d2 = dot(dEo, dOa); % scalar
-            delta_w2 = transpose(d2.*h); % 1x3 matrix
-            disp('d2: ');
-            disp(d2(:,:));                 
+            
+            dEo = o - target; % 
+            dOa = o.*(ones(length(o),1)-o); % 
+            d2 = dEo.*dOa; % matrix
+%             disp('dEo: ');
+%             disp(dEo(:,:));                 
+%             disp('dOa: ');
+%             disp(dOa(:,:));             
+%             disp('d2: ');
+%             disp((d2(:,:)));
+%             disp('outputWeights: ');
+%             disp(obj.outputWeights(:,:));            
+%             disp('h: ');
+%             disp(h(:,:));             
+            delta_w2 = d2*transpose([h;1]); % matrix
             disp('delta_w2: ');
-            disp(delta_w2(:,:));            
+            disp(delta_w2(:,:));         
           
-            d_inter = d2.*transpose(obj.outputWeights(1:obj.hiddenDim)); % 2x1 vector 
-            dHa = h(1:obj.hiddenDim).*(1-h(1:obj.hiddenDim)); % 2x1 vector           
-            d1 = dHa.*d_inter; % 2x1 vector           
-            input = [input; 1]; % 3x1 (vector)  
-            delta_w1 = d1.*transpose(input); % 2x3 matrix
+
+            d_inter = d2*obj.outputWeights(1:obj.hiddenDim); %
+%             disp('Hidden Weights: ');
+%             disp(size(obj.hiddenWeights(:,:))); 
+%             disp('d_inter: ');
+%             disp(size(d_inter(:,:)));       
+%             disp('h length: ');
+%             disp(length(h));            
+            dHa = h(1:obj.hiddenDim).*(ones(length(h),1)-h(1:obj.hiddenDim)); %
+%             disp('dHa: ');
+%             disp(size(dHa(:,:)));   
+            d1 = transpose(d_inter).*dHa; %  
             disp('d1: ');
-            disp(d1(:,:));            
+            disp((d1(:,:)));
+            disp('input: ');
+            disp((input(:,:)));  
+            
+            delta_w1 = d1*transpose([input;1]); %       
             disp('delta_w1: ');
-            disp(delta_w1(:,:));               
+            disp((delta_w1(:,:)));               
             
             obj.outputWeights = obj.outputWeights - (rate*delta_w2);
-            disp('Update outputWeights: ');
-            disp(obj.outputWeights(:,:));                       
+%             disp('Update outputWeights: ');
+%             disp(obj.outputWeights(:,:));                       
             obj.hiddenWeights = obj.hiddenWeights - (rate*delta_w1);
-            disp('Update hiddenWeights: ');
-            disp(obj.hiddenWeights(:,:));               
-           
+%             disp('Update hiddenWeights: ');
+%             disp(obj.hiddenWeights(:,:));
+            disp('Final Output: ');
+            disp(o);
         end
     end
 end
