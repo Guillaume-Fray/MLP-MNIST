@@ -1,4 +1,4 @@
-classdef MLP < handle
+classdef MLP_b2 < handle
     properties (SetAccess=private)
         inputDim % Number of inputs
         hiddenDim % Number of hidden neurons
@@ -22,15 +22,15 @@ classdef MLP < handle
         % the perceptron object and its variance as arguments.
         % --> try variance = 1.0    (with 0 as mean)
         function obj = initWeights(obj, variance) 
-            obj.hiddenWeights = [6,0,-2; 2,-2,0];
-            obj.outputWeights = [-4,2,2];
-%             obj.hiddenWeights = variance * randn(obj.hiddenDim, obj.inputDim + 1); % +0
-%             obj.outputWeights = variance * randn(obj.outputDim, obj.hiddenDim + 1); % +0
+%             obj.hiddenWeights = [6,0,-2; 2,-2,0];
+%             obj.outputWeights = [-4,2,2];
+            obj.hiddenWeights = variance * randn(obj.hiddenDim, obj.inputDim + 1); % +0
+            obj.outputWeights = variance * randn(obj.outputDim, obj.hiddenDim + 1); % +0
             
-            disp('original hidden weights: ');
-            disp(obj.hiddenWeights(:,:));
-            disp('original output weights: ');
-            disp(obj.outputWeights(:,:));
+%             disp('original hidden weights: ');
+%             disp(obj.hiddenWeights(:,:));
+%             disp('original output weights: ');
+%             disp(obj.outputWeights(:,:));
         
         end
         
@@ -40,20 +40,34 @@ classdef MLP < handle
         function [hiddenNet, hidden, outputNet, output] = compute_net_activation(obj, input)
             % Set vector v(I1; I2; ... ; 1)
             input = [input; 1];
-
-            disp('obj.hiddenWeights: ');
-            disp(obj.hiddenWeights);
-            
+            % Neuron Network's dimensions: (row = nb of Neurons, column = 1
+            % layer)
+            hiddenNet = zeros(obj.hiddenDim, 1); % activation a for each N
+            hidden = zeros(obj.hiddenDim, 1); % output o for each N
+        
             % Net activation operation before hidden layer
-            hiddenNet= input * obj.hiddenWeights; 
+            for i=1:obj.hiddenDim
+                hiddenNet(i,1) = obj.hiddenWeights(i, :) * input;
+            end
+
             % Hidden layer function (o1) operation
-            hidden = transpose(sigmoid(hiddenNet));     
-            disp('hidden: ');
-            disp(hidden);           
+            for i=1:obj.hiddenDim
+                hidden(i,1) = sigmoid(hiddenNet(i,1));
+            end
+
+            
             % Net activation operation after hidden layer
-            outputNet = obj.outputWeights * ([hidden;1]);
+            for i=1:obj.outputDim
+                outputNet(i,1) = obj.outputWeights(i, :) * [hidden; 1];
+            end            
+            
             % Output layer function (o2) operation
-            output = sigmoid(outputNet);       
+            for i=1:obj.outputDim
+                output = sigmoid(outputNet);
+%                 disp('outputs: ');
+%                 disp(output);                
+            end 
+               
 
         end
         
@@ -84,7 +98,10 @@ classdef MLP < handle
      
             d_inter = transpose(obj.outputWeights) * d2; %        
             dHa = h.*(ones(length(h),1) - h); %          
-            d1 = d_inter(1:length(h)).*dHa; %             
+            d1 = d_inter(1:length(h)).*dHa; %
+%             disp('d1: ');
+%             disp(d1);                
+            
             delta_w1 = d1*transpose([input;1]); % 
 %             disp('delta_w2: ');
 %             disp(delta_w2);              
