@@ -9,10 +9,10 @@ target = @outputXOr;
 targetName ='XOR';
 
 %choose number of hidden neurons
-hiddenSize = 4;
+hiddenSize = 3;  % 3,4
 
 % number of training steps between two plot renderings 
-speedUp = 100; %100
+speedUp = 100; % 50000 for 3 and 4
 
 record=0; % set to 1 to record video 
 % WARNING: these videos are /uncompressed/ at first and VERY LARGE
@@ -84,7 +84,7 @@ marker = scatter([], [], 100, 's', 'filled');
 
 hold off;
     
-for t = 1:1000  %10000
+for t = 1:10000  %10000
     for i=1:speedUp
         % choose random sample from data
         index = randi([1 Ntotal], 1, 1);
@@ -93,7 +93,7 @@ for t = 1:1000  %10000
         yest = m.compute_output(X(:,index));
     
         % perform learning step (back prop)
-        m.adapt_to_target(X(:,index), Y(index), 1.5); %%%%% RATE HERE 0.05 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        m.adapt_to_target(X(:,index), Y(index), 0.5); %%%%% RATE HERE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
     
     % update visualizations

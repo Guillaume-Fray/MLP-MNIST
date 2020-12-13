@@ -1,110 +1,211 @@
-% Test file
-images = loadMNISTImages('train-images-idx3-ubyte');
-labels_origin = loadMNISTLabels('train-labels-idx1-ubyte');
-[n,k] = size(images(:,:));
-labels = zeros(k,10);
+% --- Model Evaluation File ---
+
+% load training-validation data
+train_val_images = loadMNISTImages('train-images-idx3-ubyte');
+train_val_labels_origin = loadMNISTLabels('train-labels-idx1-ubyte');
+[n,k] = size(train_val_images(:,:));
+train_val_labels = zeros(k,10);
+
+% load test data
+test_inputs = loadMNISTImages('t10k-images-idx3-ubyte');
+test_labels = loadMNISTLabels('t10k-labels-idx1-ubyte');
+
 
 % transform all 1-digit inputs into 10-binary-value inputs. e.g:
 % if the original label is 5, there will be a 1 in the 5th position and 0s 
 % in all the others
-for i = 1:size(labels_origin(:,:))
-    tget = labels_origin(i,1);
+for i = 1:size(train_val_labels_origin(:,:))
+    tget = train_val_labels_origin(i,1);
     for j = 1:10
         if j == tget+1
-            labels(i,j) = 1;
+            train_val_labels(i,j) = 1;
         else
-            labels(i,j) = 0;
+            train_val_labels(i,j) = 0;
         end
     end
 end
-labels = transpose(labels);
+train_val_labels = transpose(train_val_labels);
 
 
 
-% Show the first image
-% display_network(images(:,1));
-% disp(labels(1));
-
-% Show the first 8 images
-% display_network(images(:,1:8));
-% disp(labels(1:8));
+           % --- 1 layer with 50 neurons, > 10 Epochs and L.rate = 0.1, gives a 2.1 - 2.2% error rate ---
 
 
 % Create an MLP with n=784 inputs (pixels), 3 hidden units, 10 outputs for 10 digits
-m = MLP(n, 3, 10);
+m = MLP(n, 50, 10);
 % Initialize weights in a range +/- 1
 m.initWeights(1.0); 
-% 60,000 outputs. Each output is an array of 10 binary values
-outputs = zeros(k,10);
 
-
-num_input = 50;
-
-
+% Create the outputs arrays
+training_outputs = zeros(50000,10);
+valid_outputs = zeros(10000,10);
+test_outputs = zeros(10000,10);
+folds_errors = zeros(5,1);
 
 tic
 
-for x=1:10000 % 10000
-    % Train to output the right figures
-    if mod(x,1000) == 0
-        fprintf('x is at %i \n', x);% 
+
+
+% Number of K-folds
+for folds = 1:5
+
+    % Random Cross-Validation Step
+    cross_valid_num = 10000;
+    valid_pose_start =  randi([1 49999],1); % randomly choose the starting position of the validation set
+    fprintf('The starting position of the validation set for fold %i is at %i in the entire dataset \n', folds, valid_pose_start);%
+
+    % Images and labels the model validates the model with
+    valid_input = train_val_images(:, valid_pose_start:(valid_pose_start+9999));
+    valid_target = train_val_labels(:, valid_pose_start:(valid_pose_start+9999));
+    % disp(size(valid_input)); % [784, 10000]
+    % disp(size(valid_target)); % [10, 10000]
+
+
+    % Images and labels the model is trained with
+    training_in1 = train_val_images(:, 1:(valid_pose_start-1));
+    training_in1 = transpose(training_in1);
+    training_in2 = train_val_images(:, (valid_pose_start+10000):k);
+    training_in2 = transpose(training_in2);
+    training_input = [training_in1; training_in2];
+    training_input = transpose(training_input);
+    % disp(size(training_input)); % [784, 50000]
+
+    num_train_input = 50000;
+    num_valid_input = 10000;
+
+    training_tar1 = train_val_labels(:, 1:(valid_pose_start-1));
+    training_tar1 = transpose(training_tar1);
+    training_tar2 = train_val_labels(:, (valid_pose_start+10000):k);
+    training_tar2 = transpose(training_tar2);
+    training_target = [training_tar1; training_tar2];
+    training_target = transpose(training_target);
+    % disp(size(training_target)); % [10, 50000]
+    
+
+    % x is the number of Epochs (= number of times we pass the dataset through
+    % the MLP)
+    for x=1:10 % 10000
+        % Train to output the right figures
+        if mod(x,5) == 0  % 10, 100
+            fprintf('Epoch %i \n', x);% to see where the program is at. (Epoch ID)
+        end
+        for i = 1:num_train_input % 
+            m.adapt_to_target(training_input(:,i), training_target(:,i), 0.1); % 0.1 %%%%%%%%%%%%%% <----- RATE
+            o_train = m.compute_output(training_input(:,i));
+            training_outputs(i,:) = o_train;
+        end
     end
-    for i = 1:num_input %k
-        if mod(i,1000) == 0
-            fprintf('           image --> %i \n', i);% 
-        end  
-        m.adapt_to_target(images(:,i), labels(:,i), 0.3); %%%%%%%%%%%%%%%
-        target = labels(:,i);
-        o = m.compute_output(images(:,i));
-        outputs(i,:) = o;
+    
+    % Keep the trained model for validation
+    trained_hidden_weights = m.hiddenWeights;
+    trained_output_weights = m.outputWeights;
+    m_valid = m.set_to_trained_model(trained_hidden_weights, trained_output_weights);
+
+    % Get the valid outputs
+    for i = 1:10000
+        o_valid = m_valid.compute_output(valid_input(:,i));
+        valid_outputs(i,:) = o_valid;
     end
+    
+    
+    % Training-validation performance evaluation
+    undetermined = 0; %Counter
+    correct = 0; %Counter
+    incorrect = 0; %Counter
+    for i = 1:10000
+        determined = 0; %Boolean
+        for j = 1:10
+            if valid_outputs(i,j) > 0.5 && valid_outputs(i,j) == max(valid_outputs(i,1:10))
+                determined = 1;
+%                 fprintf('Train_val_labels_origin %i is %i  \n', i, train_val_labels_origin(valid_pose_start+(i-1),1));%
+%                 fprintf('valid_output %i is %i  \n', i, (j-1));%
+%                 disp(' ');
+                if j-1 == train_val_labels_origin(valid_pose_start+(i-1),1)
+                    correct = correct + 1;
+                else
+                    incorrect = incorrect + 1;
+                end
+            elseif determined == 0 && j == 10
+                undetermined = undetermined + 1;
+            end
+        end
+    end  
+    disp(' ');%
+    disp(' ');%
+    fprintf('Number of undetermined outputs for training-validation for fold %i are %i \n',folds, undetermined);% 
+    fprintf('Number of correct outputs for training-validation for fold %i are %i \n',folds, correct);% 
+    fprintf('Number of incorrect outputs for training-validation for fold %i are %i \n',folds, incorrect);% 
+    error = (1-(correct/10000))*100;
+    fprintf('The training-validation error rate for fold %i is %f%% \n', folds, error);%
+    disp(' ');
+    folds_errors(folds,1) = error;
+    
+    % keep the best model after the 5 k-folds validation runs
+    if folds>1 && error<folds_errors((folds-1),1)
+        best_hidden_weights = m_valid.hiddenWeights;
+        best_output_weights = m_valid.outputWeights;
+    end
+    
+end    
+    
+    
+    
+% Keep the best trained model
+m_test = m.set_to_trained_model(best_hidden_weights, best_output_weights);
+
+% Get the test outputs
+for i = 1:10000
+    o_test = m_test.compute_output(test_inputs(:,i));
+    test_outputs(i,:) = o_test;
 end
 
 
-
-%%%%%%%%-------------------%%%%%%%%%%%
-disp('----- Targets -----');
-display_network(images(:,1:num_input));
-disp('labels(:,1:num_input)');
-disp(labels(:,1:num_input));
-% disp('----- Outputs -----');
-% disp(outputs(1:num_input,:));
-
-undetermined = 0; %Counter
-correct = 0; %Counter
-incorrect = 0; %Counter
-for i = 1:num_input
-    determined = 0; %Boolean
+% Test performance evaluation
+undetermined2 = 0; %Counter
+correct2 = 0; %Counter
+incorrect2 = 0; %Counter
+for i = 1:10000
+    determined2 = 0; %Boolean
     for j = 1:10
-        if outputs(i,j) > 0.9 && outputs(i,j) == max(outputs(i,j))
-            fprintf('Output %i is %i \n', i, j-1);%
-            determined = 1;
-            fprintf('Label %i is %i \n', i, labels_origin(i,1));%
-            if j-1 == labels_origin(i,1)
-                correct = correct + 1;
+        if test_outputs(i,j) > 0.5 && test_outputs(i,j) == max(test_outputs(i,1:10))
+            determined2 = 1;
+            if j-1 == test_labels(i,1)
+                correct2 = correct2 + 1;
             else
-                incorrect = incorrect + 1;
+                incorrect2 = incorrect2 + 1;
             end
-        elseif determined == 0 && j == 10
-%             fprintf('Output %i could not be determined \n', i);% 
+        elseif determined2 == 0 && j == 10
             undetermined = undetermined + 1;
         end
     end
 end    
 
-disp('\n \n');%
-fprintf('Number of undetermined outputs are %i \n', undetermined);% 
-fprintf('Number of correct outputs are %i \n', correct);% 
-fprintf('Number of incorrect outputs are %i \n', incorrect);% 
+disp(' ');%
+disp(' ');%
+fprintf('Number of undetermined test outputs are %i \n', undetermined2);% 
+fprintf('Number of correct test outputs are %i \n', correct2);% 
+fprintf('Number of incorrect test outputs are %i \n', incorrect2);% 
+
+error_rate2 = (1-(correct2/10000))*100;
+fprintf('The test error rate is %f%% \n', error_rate2);%
+disp(' ');
+
+
+% END
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+disp('----- Targets -----');
+display_network(test_inputs(:,1:10000));
+% disp('labels(:,1:num_input)');
+% disp(labels(:,1:num_input));
+% disp('----- Outputs -----');
+% disp(outputs(1:num_input,:));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
 
 
 
 
 toc
-
-
-
-
 
 
 

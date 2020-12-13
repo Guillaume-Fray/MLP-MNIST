@@ -24,6 +24,8 @@ classdef MLP < handle
         function obj = initWeights(obj, variance) 
 %             obj.hiddenWeights = [6,0,-2; 2,-2,0];
 %             obj.outputWeights = [-4,2,2];
+%             obj.hiddenWeights = [2,-3,1; 0,1,-4];
+%             obj.outputWeights = [1,0,3];
             obj.hiddenWeights = variance * randn(obj.hiddenDim, obj.inputDim + 1); % +0
             obj.outputWeights = variance * randn(obj.outputDim, obj.hiddenDim + 1); % +0
             
@@ -33,6 +35,13 @@ classdef MLP < handle
 %             disp(obj.outputWeights(:,:));
         
         end
+ 
+      % Set weights to those of trained model, for actual model evaluation
+        function obj = set_to_trained_model(obj,hW, oW) 
+            obj.hiddenWeights = hW; % +0
+            obj.outputWeights = oW; % +0           
+        end        
+        
         
         
         % This function calls the forward propagation and extracts all
