@@ -50,7 +50,7 @@ classdef MLP < handle
 
             input = [input; 1];   
             hiddenNet = obj.hiddenWeights * input;
-            hidden = sigmoid(hiddenNet);
+            hidden = sigmoid(hiddenNet); %sigmoid, softmax
             
             hid = [hidden; 1];           
             outputNet = obj.outputWeights * hid;
